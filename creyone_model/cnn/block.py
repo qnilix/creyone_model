@@ -49,7 +49,7 @@ class CNNBlockCfg(BaseCfg):
     conv_bias: bool = False
 
     act_name: str = 'relu'
-    act_inplace: bool = False
+    act_inplace: bool = True
 
     norm_name: str = 'batch'
     norm_eps: float = 1e-5
