@@ -3,8 +3,9 @@ from dataclasses import dataclass
 import torch
 from torch import nn, Tensor
 
-from ..utils import BaseCfg
 from creyone_layer import create_layer
+from ..utils import BaseCfg
+from ..cynn import CreYonT
 
 
 @dataclass
@@ -188,7 +189,7 @@ class ConvNormAct(nn.Module):
         self.norm = cfg.norm_layer(out_dim, name=norm_name, eps=eps)
         self.act  = cfg.act_layer(name=act_name, inplace=inplace)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: CreYonT) -> CreYonT:
         """Apply conv -> norm -> act to the input tensor.
 
         Args:
@@ -198,4 +199,4 @@ class ConvNormAct(nn.Module):
             Output tensor of shape ``(B, out_dim, *spatial')``, where
             ``spatial'`` depends on the convolution stride and padding.
         """
-        return self.act(self.norm(self.conv(x)))
+        return x(self.conv)(self.norm)(self.act)
