@@ -49,7 +49,7 @@ class CNNBlockCfg(BaseCfg):
     conv_bias: bool = False
 
     act_name: str = 'relu'
-    act_inplace: bool = False
+    act_inplace: bool = True
 
     norm_name: str = 'batch'
     norm_eps: float = 1e-5
@@ -200,3 +200,47 @@ class ConvNormAct(nn.Module):
             ``spatial'`` depends on the convolution stride and padding.
         """
         return x(self.conv)(self.norm)(self.act)
+
+
+_NORM_CFG_MAP: dict = {
+    'BN': 'batch', 'BN1d': 'batch', 'BN2d': 'batch', 'BN3d': 'batch',
+    'GN': 'group',
+    'LN': 'layer',
+    'IN': 'instance', 'IN1d': 'instance', 'IN2d': 'instance', 'IN3d': 'instance',
+}
+
+
+class ConvModule(nn.Module):
+    """mmcv-compatible Conv → Norm → Act block.
+
+    Accepts an mmcv-style ``norm_cfg`` dict and delegates to
+    :class:`ConvNormAct` via :class:`CNNBlockCfg`.
+
+    Args:
+        inp: Number of input channels.
+        oup: Number of output channels.
+        kernel_size: Convolution kernel size. Defaults to ``1``.
+        norm_cfg: Normalisation config dict with keys ``'type'``
+            (e.g. ``'BN'``, ``'GN'``, ``'LN'``) and ``'requires_grad'``.
+            Defaults to ``{'type': 'BN', 'requires_grad': True}``.
+
+    Example::
+
+        m = ConvModule(32, 64, kernel_size=3)
+        m = ConvModule(32, 64, norm_cfg={'type': 'GN', 'requires_grad': True})
+    """
+
+    def __init__(self, inp: int, oup: int, kernel_size: int = 1,
+                 norm_cfg: dict = None):
+        super().__init__()
+        if norm_cfg is None:
+            norm_cfg = {'type': 'BN', 'requires_grad': True}
+        norm_name = _NORM_CFG_MAP.get(norm_cfg.get('type', 'BN'), 'batch')
+        cfg = CNNBlockCfg(norm_name=norm_name)
+        self.block = ConvNormAct(cfg, inp, oup, kernel_size)
+        if not norm_cfg.get('requires_grad', True):
+            for p in self.block.norm.parameters():
+                p.requires_grad_(False)
+
+    def forward(self, x: CreYonT) -> CreYonT:
+        return self.block(x)
