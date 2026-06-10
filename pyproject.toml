@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "creyone_model"
+version = "1.0.0"
+dependencies = [
+  "torch>=2.0",
+  "einops",
+  "creyone_layer"
+]
+requires-python = ">=3.10"
+authors = [
+  {name = "Linqa Kiriyama", email = "kiriyamalq@gmail.com"},
+]
+description = "PyTorch layer building tools for CREYONE"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = []
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3 :: Only"
+]
+
+[project.urls]
+Homepage = "https://github.com/qnilix/creyone_model"
+Documentation = "https://creyone-model.readthedocs.io/"
+Repository = "https://github.com/qnilix/creyone_model.git"
+"Bug Tracker" = "https://github.com/qnilix/creyone_model/issues"
+Changelog = "https://github.com/qnilix/creyone_model/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["creyone_model*"]
