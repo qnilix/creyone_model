@@ -14,7 +14,7 @@ from .config import ImageClassificationCfg
 
 class ImageClassification(ImageProcessor):
 
-    def __init__(self, body: nn.Module, 
+    def __init__(self, body: nn.Module, head: nn.Module = None, 
                  cfg: ImageClassificationCfg = None,
                  loss_bce: bool = False,
                  trainable: str = 'all',
@@ -22,6 +22,7 @@ class ImageClassification(ImageProcessor):
                  **kwargs):
         super().__init__(body, cfg=cfg, model_meta=model_meta, **kwargs)
         self.body.trainable_parameters(trainable)
+        self.head = head if head is not None else nn.Identity()
         self._loss_fn = ClassificationLoss(bce=(self.cfg.daug_type == 'mixup') or loss_bce)
     
     def get_cfg(self, cfg, **kwargs):

@@ -1,5 +1,16 @@
-from dataclasses import dataclass, fields
-from typing import Any
+import os
+from dataclasses import asdict, dataclass, fields
+from typing import Any, Optional, Union
+
+import torch
+from torch.hub import load_state_dict_from_url
+
+from .dictils import pop_keys
+from .helper import load_state_dict, load_weights_only_compat
+
+
+_CHECK_HASH = False
+_DOWNLOAD_PROGRESS = False
 
 
 def type_subclass(cls: type, classinfo) -> bool:
@@ -11,6 +22,47 @@ def type_subclass(cls: type, classinfo) -> bool:
 
 
 @dataclass
+class PretrainedCfg:
+
+    url: Optional[Union[str]] = None
+    file: Optional[str] = None
+    state_dict: Optional[dict[str, any]] = None  # in-memory state dict
+
+    source: Optional[str] = None
+    architecture: Optional[str] = None
+    tag: Optional[str] = None
+    custom_load: bool = False  # use custom model specific model.load_pretrained() (ie for npz files)
+
+    @property
+    def has_weights(self) -> bool:
+        return self.url or self.file
+    
+    def resolve_source(self) -> tuple[str, any]:        
+        if self.state_dict: return 'state_dict', self.state_dict
+        if self.file: return 'file', self.file
+        if self.url: return 'url', self.url
+        return ('', '')
+    
+    def get_stdt(self) -> dict:
+        load_from, loc = self.resolve_source()
+        if load_from == 'state_dict': return loc
+        if load_from == 'file': return load_state_dict(loc)
+        if load_from == 'url':
+            kw = {'map_location': 'cpu',
+                  'progress': _DOWNLOAD_PROGRESS,
+                  'check_hash': _CHECK_HASH,
+                  'weights_only': True}
+            return load_weights_only_compat(load_state_dict_from_url, loc, **kw)
+        raise FileNotFoundError(f"Get state_dict from ({load_from}: {loc}) but not found")
+    
+    def get_meta(self) -> dict:
+        if self.file is None: return {}
+        return torch.load(self.file, weights_only=False).get('meta', {})
+    
+    def get_meta_for_save(self): return asdict(self)
+
+
+@dataclass
 class BaseCfg:
     """Base class for hierarchical configuration dataclasses.
 
@@ -19,6 +71,15 @@ class BaseCfg:
     ``default_factory`` is a ``BaseCfg`` subclass are built recursively by
     ``instance()``.
     """
+
+    @staticmethod
+    def get_pretrained(**kwargs) -> tuple[PretrainedCfg, dict]:
+        name = [f.name for f in fields(PretrainedCfg)]
+        temp = dict()
+        pret = kwargs.pop('pretrained', None)
+        if isinstance(pret, dict): temp.update(pop_keys(name, pret))
+        temp.update(pop_keys(name, kwargs))
+        return PretrainedCfg(**temp), kwargs
 
     @classmethod
     def instance(cls, **kwargs) -> tuple[Any, dict[str, Any]]:
