@@ -18,6 +18,7 @@ class BaseFilter:
         posemb = stdt.pop(self.posemb_name, None)
         stdt['prompts'] = prompt
         stdt['embed.pos.weight'] = posemb
+        return stdt
 
 
 class TimmViTFilter(BaseFilter):
@@ -54,8 +55,8 @@ class TimmViTFilter(BaseFilter):
             if s[-1].startswith('adw'): stdt[k] = v
             if len(s) > 1 and s[-2].startswith('adw'):
                 if s[-1] in ('weight', 'bias'): stdt[k] = v
-        stdt.update(model.unchanged_param(model))
-        stdt.update(model.modify_param(model))
+        stdt.update(model.unchanged_param())
+        stdt.update(model.modify_param(stdt))
         return stdt
     
     def blocks(self, old_key: str, weight: torch.Tensor):

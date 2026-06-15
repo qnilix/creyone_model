@@ -11,6 +11,8 @@ from .base import ImageProcessor
 from .losses import ClassificationLoss
 from .config import ImageClassificationCfg
 
+from ..base.config import get_model_for_task
+
 
 class ImageClassification(ImageProcessor):
 
@@ -61,3 +63,9 @@ class ImageClassification(ImageProcessor):
 
     def metric_list(self) -> list: 
         return [('acc', 'acc5'), ('acc', 'acc1'), 'loss']
+
+
+def from_encoder(variant: str, cynn_i: type[ImageClassification] = ImageClassification,
+                 **kwargs) -> ImageClassification:
+    create_fn, args, _ = get_model_for_task(variant, 'image_encoder')
+    return cynn_i(create_fn(*args, **kwargs))

@@ -60,7 +60,7 @@ def model_entrypoint(model_name: str,
     if task_name is not None and model_name in _model_entrypoints[task_name]: 
         return _model_entrypoints[task_name][model_name]
     if model_name not in _model_entrypoints['any']:
-        raise RuntimeError(f'Model ({model_name} not found in this repository.')
+        raise RuntimeError(f'Model ({model_name}) not found in this repository.')
     return _model_entrypoints['any'][model_name]
 
 
@@ -68,5 +68,5 @@ def processor_entrypoint(model_name: str) -> Callable[..., Any]:
     """Fetch a model entrypoint for specified model name
     """
     if model_name not in _processor_entrypoints:
-        raise RuntimeError(f'Processor ({model_name} not found in this repository.')
+        raise RuntimeError(f'Processor ({model_name}) not found in this repository.')
     return _processor_entrypoints[model_name]

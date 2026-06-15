@@ -247,7 +247,7 @@ class BuildShelf:
         if isinstance(pretrained_cfg, BookRevision):
             return pretrained_cfg.book(self.default_cfg,
                                        keepers=self.out[name].keepers)
-        if isinstance(pretrained_cfg, str) and pretrained_cfg != "":
+        if isinstance(pretrained_cfg, str):
             if pretrained_cfg == '':
                 return BuildBook(self.default_cfg)
             return self.out[name].keepers[pretrained_cfg]
