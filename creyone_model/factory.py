@@ -1,5 +1,5 @@
 from typing import Any, Optional, Union
-from .base.config import ModelCfg, get_model_for_task
+from .base.config import get_model_for_task
 from .utils.config import PretrainedCfg
 
 def get_config(task_name: str):
@@ -11,7 +11,6 @@ def get_config(task_name: str):
 def create_model(
     model_name: str,
     task_name: str = 'any',
-    model_cfg: Optional[ModelCfg] = None,
     pretrained: Optional[bool] = None,
     pretrained_cfg: Optional[Union[str, dict[str, Any], PretrainedCfg]] = None,
     **kwargs,
@@ -25,7 +24,6 @@ def create_model(
     with model_cfg.set_layer_config():
         model = create_fn(
             *model_args,
-            model_cfg=model_cfg,
             pretrained=pretrained,
             pretrained_cfg=pretrained_cfg,
             **kwargs,

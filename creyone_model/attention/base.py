@@ -33,7 +33,7 @@ class AttnCfg(BaseCfg):
     out_dim: int = -1
     softmax: bool = True
 
-    bias: str = 'qkv'
+    bias: str = 'qkvo'
     qk_norm: str = ''
     attn_norm: bool = False
 

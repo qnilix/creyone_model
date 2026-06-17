@@ -13,6 +13,6 @@ def get_mlp(cfg: MlpCfg, module: Mlp, **kwargs):
     return partial(module, cfg=book.get_config()[0])
 
 
-@register_model('attn')
+@register_model('mlp')
 def base(*args, **kwargs) -> Mlp:
     return get_mlp(MlpCfg, Mlp, **kwargs)

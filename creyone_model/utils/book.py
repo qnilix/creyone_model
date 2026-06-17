@@ -106,7 +106,9 @@ class BuildBook(BuildFlyer):
     
     @property
     def pret_key(self) -> str:
-        return self.ext_cfg.get_stdt().get('pret_key', None)
+        if not hasattr(self, '_pret_key'):
+            self._pret_key = self.ext_cfg.get_stdt().get('pret_key', None)
+        return self._pret_key
 
     @property
     def int_cfg(self) -> dict:
@@ -158,7 +160,8 @@ class BuildBook(BuildFlyer):
             A state dict ready to be passed to ``model.load_state_dict``.
         """
         temp = dict()
-        if self.source is not None: temp = self.source.get_stdt(model)
+        if self.source is not None:
+            temp = self.source.get_stdt(model)
         temp.update(self.ext_cfg.get_stdt())
         return temp if self.filter is None else self.filter(temp, model)
 
@@ -239,9 +242,7 @@ class BuildShelf:
         self.out[name].keepers[tag] = book
     
     def take(self, name: str, 
-             pretrained_cfg: Optional[Union[str|list|pathlib.Path]] = None,
-             filter = None
-             ) -> BuildBook:
+             pretrained_cfg: Optional[Union[str|list|pathlib.Path]] = None) -> BuildBook:
         if isinstance(pretrained_cfg, list):
             return [self.take(name, cfg) for cfg in pretrained_cfg] 
         if isinstance(pretrained_cfg, BookRevision):

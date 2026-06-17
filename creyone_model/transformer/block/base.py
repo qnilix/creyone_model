@@ -21,8 +21,10 @@ class BlockCfg(BaseCfg):
     mlp_ratio: float = 4.
 
     act_name: str = 'gelu'
+    attn_name: str = 'base'
     mlp_name: str = 'base'
-
+    
+    mlp_norm: bool = False
     sub_norm: bool = False
     init_values: Optional[float] = None
 
@@ -40,7 +42,8 @@ class BlockCfg(BaseCfg):
                   norm_layer: nn.Module = nn.LayerNorm,
                   **kwargs) -> Mlp:
         create_fn, args, _ = get_model_for_task(self.attn_name, 'mlp')
-        return create_fn(*args, **kwargs)(dim, norm_layer=norm_layer)
+        nl = norm_layer if self.mlp_norm else nn.Identity()
+        return create_fn(*args, **kwargs)(dim, norm_layer=nl)
     
     def layer_scale(self, dim: int) -> layer_scale.LayerScale:
         if self.init_values is None: return nn.Identity()

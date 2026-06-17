@@ -19,7 +19,7 @@ def vit_update_kwargs(cfgs: dict, size: str, patch: int, res: int):
 def get_encoder_vit(size: str, patch: str, image_size: str, *_,
                     shelf: type[BuildShelf] = BuildShelf,
                     default: type[ViT] = ViT, default_cfg: type[ViTCfg] = ViTCfg,
-                    keep_head: bool = True, margin_image_size: int = 0, **kwargs):
+                    keep_head: bool = True, **kwargs):
     #def vit(size: str, patch: str = '16', image_size: str = '224', *_,
     #    default_cfg: type[ViTCfg] = ViTCfg,
     #    keep_head: bool = True,
@@ -35,7 +35,5 @@ def get_encoder_vit(size: str, patch: str, image_size: str, *_,
     shelf = shelf(default_cfg, pret_cfgs(keep_head))
     builder = ModelBuilder(default = default_cfg, shelf = shelf)
     vit_update_kwargs(kwargs, size, patch, new_size or var_size)
-    if margin_image_size > 0:
-        kwargs['image_size'] = tuple([i + margin_image_size for i in kwargs['image_size']])
     book = builder.ref_shelf(variant=f'vit-{size}-patch{patch}-{var_size}', **kwargs)
     return builder.build(default, book=book, **kwargs)

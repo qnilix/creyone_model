@@ -13,6 +13,7 @@ from .block import BlockCfg
 @dataclass
 class TransformerCfg(BaseCfg):
 
+    depth: int = 12
     embed_dim: int = 768
 
     norm_eps: float = 1e-6
@@ -38,7 +39,7 @@ class Transformer(nn.Module):
         super().__init__()
 
         self.embed_dim = cfg.embed_dim
-        self.block_depth = cfg.block.depth
+        self.block_depth = cfg.depth
 
         if norm_layer is None:
             norm_layer = create_layer('layer', 'norm')(eps=cfg.norm_eps)
@@ -46,7 +47,7 @@ class Transformer(nn.Module):
         self.norm_pre = norm_layer(self.embed_dim) if cfg.pre_norm else nn.Identity()
         self.norm = norm_layer(self.embed_dim) if cfg.post_norm else nn.Identity()
 
-        for i in range(cfg.block.depth):
+        for i in range(cfg.depth):
             block = cfg.block.block_module(self.embed_dim, norm_layer=norm_layer, **cfg.block_kwargs(i))
             self.add_module(f'block{i}', block)
     
@@ -66,7 +67,3 @@ class Transformer(nn.Module):
     def reset_parameters(self, mode: str = 'trunc_'):
         for i in range(self.block_depth):
             self.get_submodule(f'block{i}').reset_parameters(mode)
-        
-    def attention_ops(self):
-        def f(x: torch.Tensor, **_): return x.softmax(dim=-1)
-        return [f]
