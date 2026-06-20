@@ -153,11 +153,16 @@ class BaseCfg:
 
     @staticmethod
     def get_pretrained(**kwargs) -> tuple[PretrainedCfg, dict]:
-        name = [f.name for f in fields(PretrainedCfg)]
+        name = [f.name for f in fields(PretrainedHFCfg)]
         temp = dict()
         pret = kwargs.pop('pretrained', None)
         if isinstance(pret, dict): temp.update(pop_keys(name, pret))
         temp.update(pop_keys(name, kwargs))
+        if temp.get('hf_hub_id', None) is not None:
+            cfg = PretrainedHFCfg(**temp)
+            src = cfg.get_imgproc()
+            if src is not None: kwargs.update(src)
+            return cfg, kwargs
         return PretrainedCfg(**temp), kwargs
 
     @classmethod

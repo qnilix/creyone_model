@@ -29,11 +29,13 @@ class AttnCfg(BaseCfg):
         proj_drop: Dropout probability applied after the output projection.
     """
 
+    name: str = 'base'
+    
     num_heads: int = 8
     out_dim: int = -1
     softmax: bool = True
 
-    bias: str = 'qkvo'
+    bias: str = 'qkv'
     qk_norm: str = ''
     attn_norm: bool = False
 

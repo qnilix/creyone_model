@@ -238,7 +238,7 @@ class BuildShelf:
         else:
             self.out[name].tags.append(tag)
         
-        book.pret_key = tag
+        book._pret_key = tag
         self.out[name].keepers[tag] = book
     
     def take(self, name: str, 

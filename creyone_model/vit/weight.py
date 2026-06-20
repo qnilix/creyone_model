@@ -55,7 +55,7 @@ class TimmViTFilter(BaseFilter):
             if s[-1].startswith('adw'): stdt[k] = v
             if len(s) > 1 and s[-2].startswith('adw'):
                 if s[-1] in ('weight', 'bias'): stdt[k] = v
-        stdt.update(model.unchanged_param())
+        stdt.update(model.unchanged_param(model))
         stdt.update(model.modify_param(stdt))
         return stdt
     

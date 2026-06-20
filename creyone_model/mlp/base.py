@@ -16,7 +16,7 @@ class MlpCfg(BaseCfg):
     mlp_act: str = 'gelu'
     act_inplace: bool = True
 
-    mlp_bias: int = False
+    mlp_bias: int = True
     mlp_drop: float = 0.
 
 
@@ -51,7 +51,7 @@ class Mlp(nn.Module):
         self.drop1 = nn.Dropout(drop_probs[0])
         self.drop2 = nn.Dropout(drop_probs[1])
         self.act  = factory.create_layer(cfg.mlp_act, 'act')(inplace=cfg.act_inplace, **kwargs)()
-        self.norm = norm_layer(dim[1]) if norm_layer is not None else nn.Identity()
+        self.norm = norm_layer(dims[1]) if norm_layer is not None else nn.Identity()
 
     def _fc_layer(self, **kwargs) -> type[nn.Module]:
         """Return the linear layer class used to build ``fc1`` and ``fc2``.

@@ -26,7 +26,7 @@ class TransformerCfg(BaseCfg):
 
     def block_kwargs(self, idx: int) -> dict:
         return {
-            'path_drop': idx * self.drop_path_rate / self.block.depth,
+            'path_drop': idx * self.drop_path_rate / self.depth,
             'layer_id': idx
         }
 

@@ -8,11 +8,15 @@ from .base import Mlp, MlpCfg
 __all__ = ['base']
 
 
-def get_mlp(cfg: MlpCfg, module: Mlp, **kwargs):
-    book = BuildFlyer(cfg, **kwargs)
+def get_mlp(module: Mlp, 
+            cfg: MlpCfg = None,
+            cfg_cls: type[MlpCfg] = None, 
+            **kwargs):
+    if cfg is not None: return partial(module, cfg=cfg)
+    book = BuildFlyer(cfg_cls or MlpCfg, **kwargs)
     return partial(module, cfg=book.get_config()[0])
 
 
 @register_model('mlp')
-def base(*args, **kwargs) -> Mlp:
-    return get_mlp(MlpCfg, Mlp, **kwargs)
+def base(*args, cfg_cls: MlpCfg = None, **kwargs) -> Mlp:
+    return get_mlp(Mlp, cfg_cls=cfg_cls, **kwargs)

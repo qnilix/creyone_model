@@ -64,7 +64,7 @@ class ViTEmbed(nn.Module):
             Token sequence with positional embedding applied, shape (B, N[+P], D).
         """
         if prompt is None: return x(self.pos)
-        prompt = CreYonT(prompt)(self.reshape_embed, batch=x.B)
+        prompt = x.__class__(prompt)(self.reshape_embed, batch=x.B)
         if self.pos.weight.shape[1] == x.shape[1]:
             return prompt.cat(x(self.pos), dim=1)
         return prompt.cat(x, dim=1)(self.pos)

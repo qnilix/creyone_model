@@ -80,6 +80,7 @@ class RawImage(nn.Module):
     """
 
     tensor_dims: int = 2
+    cynnT = CreYonT
 
     def __init__(self, cfg: ImageProcessorCfg, image_norm: str = None, **kwargs):
         """
@@ -98,7 +99,7 @@ class RawImage(nn.Module):
 
     def forward(self, x: torch.Tensor) -> CreYonT:
         """Wrap the input tensor and apply training-time augmentation if enabled."""
-        img = CreYonT(x)
+        img = self.cynnT(x)
         if not self.training: return img
         if self.daug_type == 'mixup': img = self.mixup(img)
         return img
@@ -136,7 +137,7 @@ class ImageProcessor(ModuleBase):
 
     def __init__(self, body: nn.Module, cfg: ImageProcessorCfg = None,
                  model_meta: Optional[dict] = None,
-                 target_layers: Optional[list[str]] = None,
+                 target_layers: list[str] = [],
                  image_norm: str = None,
                  crop_pct: Optional[float] = None,
                  crop_mode: Optional[str] = None,
@@ -161,11 +162,12 @@ class ImageProcessor(ModuleBase):
             self.image_size, crop_pct=crop_pct, crop_mode=crop_mode,
             interpolation=interpolation)
     
-    def get_target_layers(self, target_layers: Optional[list[str]] = None) -> list:
+    def get_target_layers(self, target_layers: list[str] = []) -> list:
         """Resolve target layer names via the config, falling back to ``target_layers``."""
         return self.cfg.target_layers(target_layers)
 
-    def get_cfg(self, cfg): return cfg or None
+    def get_cfg(self, cfg: ImageProcessorCfg) -> ImageProcessorCfg:
+        return cfg or ImageProcessorCfg()
 
     def image_init(self, cfg: ImageProcessorCfg, image_norm: str = None) -> RawImage:
         """Instantiate the :class:`RawImage` preprocessing front-end."""

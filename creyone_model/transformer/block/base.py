@@ -1,6 +1,6 @@
 import math
 from typing import Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from torch import nn
 
@@ -11,8 +11,8 @@ from creyone_layer import layer_scale
 from ...cynn import CreYonT
 from ...utils import BaseCfg
 from ...base.config import get_model_for_task
-from ...attention import Attention
-from ...mlp import Mlp
+from ...attention import Attention, AttnCfg
+from ...mlp import Mlp, MlpCfg
 
 
 @dataclass
@@ -21,12 +21,12 @@ class BlockCfg(BaseCfg):
     mlp_ratio: float = 4.
 
     act_name: str = 'gelu'
-    attn_name: str = 'base'
-    mlp_name: str = 'base'
-    
     mlp_norm: bool = False
     sub_norm: bool = False
     init_values: Optional[float] = None
+
+    attn: AttnCfg = field(AttnCfg)
+    mlp: MlpCfg = field(MlpCfg)
 
     def block_module(self, dim, **kwargs):
         return Block(dim, cfg=self, **kwargs)
@@ -35,14 +35,14 @@ class BlockCfg(BaseCfg):
                    norm_layer: nn.Module = nn.LayerNorm,
                    layer_id: int = -1, 
                    **kwargs) -> Attention:
-        create_fn, args, _ = get_model_for_task(self.attn_name, 'attn')
+        create_fn, args, _ = get_model_for_task(self.attn.name, 'attn')
         return create_fn(*args, **kwargs)(dim, norm_layer=norm_layer, layer_id=layer_id)
     
     def mlp_layer(self, dim: int,
                   norm_layer: nn.Module = nn.LayerNorm,
                   **kwargs) -> Mlp:
-        create_fn, args, _ = get_model_for_task(self.attn_name, 'mlp')
-        nl = norm_layer if self.mlp_norm else nn.Identity()
+        create_fn, args, _ = get_model_for_task(self.mlp.name, 'mlp')
+        nl = norm_layer if self.mlp_norm else nn.Identity
         return create_fn(*args, **kwargs)(dim, norm_layer=nl)
     
     def layer_scale(self, dim: int) -> layer_scale.LayerScale:
@@ -68,8 +68,8 @@ class Block(nn.Module):
         self.norm1 = norm_layer(dim); self.ls1 = cfg.layer_scale(dim)
         self.norm2 = norm_layer(dim); self.ls2 = cfg.layer_scale(dim)
 
-        self.attn = cfg.attn_layer(dim, norm_layer=norm_layer, layer_id=layer_id)
-        self.mlp  = cfg.mlp_layer(dim, norm_layer=norm_layer)
+        self.attn = cfg.attn_layer(dim=dim, norm_layer=norm_layer, layer_id=layer_id)
+        self.mlp  = cfg.mlp_layer(dim=dim, norm_layer=norm_layer)
 
         self.drop_path1 = cfg.drop_path(path_drop)
         self.drop_path2 = cfg.drop_path(path_drop)

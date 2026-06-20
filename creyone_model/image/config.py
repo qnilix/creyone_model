@@ -11,7 +11,7 @@ class ImageClassificationCfg(ImageProcessorCfg):
 
     attack_type: str = None
 
-    def target_layers(self, target_layers: list[str] = None) -> list[str]:
+    def target_layers(self, target_layers: list[str] = []) -> list[str]:
         if self.attack_type is None: return target_layers
         target_layers += ['image_first']
         return target_layers
