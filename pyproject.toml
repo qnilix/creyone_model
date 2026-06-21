@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "creyone_model"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
   "torch>=2.0",
   "einops",
-  "creyone_layer>=1.0.3"
+  "timm",
+  "creyone_layer>=1.0.4"
 ]
 requires-python = ">=3.10"
 authors = [
