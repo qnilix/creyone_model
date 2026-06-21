@@ -152,7 +152,3 @@ cfg = TransformerCfg(
     ),
 )
 ```
-
-## License
-
-MIT License — Copyright 2026 Rinka Kiriyama.
