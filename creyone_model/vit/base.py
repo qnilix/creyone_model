@@ -182,7 +182,7 @@ class ViT(Transformer):
 
         Args:
             mode: A ``'/'``-separated list of sub-module specifiers, or one of
-                the shorthand strings ``'all'``, ``'none'``, or ``'adw'``.
+                the shorthand strings ``'all'``, ``'none'``, or ``'add'``.
                 Each specifier may optionally carry a dotted sub-mode suffix
                 (e.g. ``'transformer.attn'``).  Recognized prefixes are
                 ``transformer``, ``head``, and ``prompts``; anything else is
@@ -196,7 +196,7 @@ class ViT(Transformer):
             ``True``; otherwise the return value matches the parent
             :meth:`Transformer.trainable_parameters` contract.
         """
-        if mode in ('adw', 'all', 'none'): return super().trainable_parameters(mode)
+        if mode in ('add', 'all', 'none'): return super().trainable_parameters(mode)
         def tkey(key, alt: str = 'all'): return alt
         subs = mode.split('/'); temp = list()
         self.requires_grad_(False)

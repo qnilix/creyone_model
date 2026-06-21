@@ -18,6 +18,6 @@ autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 napoleon_google_docstring = True
 
-html_theme = "alabaster"
+html_theme = "shibuya"
 
 exclude_patterns = ["_build"]

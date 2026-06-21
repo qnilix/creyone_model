@@ -1,5 +1,4 @@
 import re
-from collections import defaultdict
 
 import torch
 from torch import nn
@@ -36,11 +35,10 @@ class TimmViTFilter(BaseFilter):
         super().__call__(stdt, model)
 
         head = dict()
-        keys = [k for k in stdt.keys()]
+        keys = list(stdt.keys())
         for k in keys:
-            assert isinstance(k, str)
             if k.startswith('head'): head[k] = stdt.pop(k)
-            if k.startswith('blocks'): stdt.update(self.blocks(k, stdt.pop(k)))
+            elif k.startswith('blocks'): stdt.update(self.blocks(k, stdt.pop(k)))
 
         if not self.keep_head:
             param = model.named_parameters()
@@ -89,12 +87,11 @@ class CLIPFilter(BaseFilter):
         stdt.pop('embeddings.position_ids')
         stdt['patch_embed.proj.weight'] = pemb_w
 
-        keys = [k for k in stdt.keys()]
+        keys = list(stdt.keys())
         for k in keys:
-            assert isinstance(k, str)
             if k.startswith('pre_layrnorm'): stdt[k.replace('pre_layrnorm', 'norm_pre')] = stdt.pop(k)
-            if k.startswith('post_layernorm'): head[k.replace('post_layernorm', 'head.fc_norm')] = stdt.pop(k)
-            if k.startswith('encoder.layers'):
+            elif k.startswith('post_layernorm'): head[k.replace('post_layernorm', 'head.fc_norm')] = stdt.pop(k)
+            elif k.startswith('encoder.layers'):
                 new_k = re.sub(r'encoder\.layers\.', 'block', k, 1).replace('self_attn', 'attn')
                 new_k = new_k.replace('attn.out', 'attn.o').replace('layer_n', 'n')
                 stdt[new_k] = stdt.pop(k)
