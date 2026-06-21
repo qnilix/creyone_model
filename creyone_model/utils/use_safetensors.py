@@ -1,3 +1,6 @@
+#Copyright 2026 Rinka Kiriyama。
+#Licensed under the MIT License (MIT). 
+
 from typing import Iterable
 from functools import partial
 

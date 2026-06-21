@@ -1,3 +1,6 @@
+#Copyright 2026 Rinka Kiriyama。
+#Licensed under the MIT License (MIT). 
+
 import logging
 from typing import Callable, Optional, Union
 from dataclasses import dataclass, field

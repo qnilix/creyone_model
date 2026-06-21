@@ -13,6 +13,9 @@ Design rationale
    mask or position_ids survive each operation and are passed on to downstream layers.
    Subclasses only need to define the extra attributes; the rest of the pipeline is
    unchanged.
+
+Copyright 2026 Rinka Kiriyama。
+Licensed under the MIT License (MIT). 
 """
 import copy
 from typing import Self
@@ -198,3 +201,10 @@ class CreYonT:
 
     def rearrange(self, pattern: str, **axes_lengths: any) -> Self:
         return self.plug(rearrange(self._t, pattern, **axes_lengths))
+    
+    def where(self, condition, other) -> Self:
+        if isinstance(condition, CreYonT): condition = condition._t
+        if isinstance(other, CreYonT): other = other._t
+        return self.plug(torch.where(condition, self._t, other))
+
+

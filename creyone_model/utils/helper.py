@@ -1,3 +1,6 @@
+#Copyright 2026 Rinka Kiriyama。
+#Licensed under the MIT License (MIT). 
+
 from typing import Any, Callable, Union
 
 import torch

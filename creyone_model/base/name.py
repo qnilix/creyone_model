@@ -1,3 +1,6 @@
+#Copyright 2026 Rinka Kiriyama。
+#Licensed under the MIT License (MIT). 
+
 import re, os
 from urllib.parse import urlsplit
 from typing import Optional

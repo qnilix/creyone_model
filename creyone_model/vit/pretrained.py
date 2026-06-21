@@ -24,7 +24,7 @@ def hub_pretrained(id: str):
 
 def augreg(item: dict, keep_head: bool = False):
     item['stdt_filter'] = TimmViTFilter(keep_head=keep_head)
-    item['transformer'] = {'post_norm': True, 'block': {'attn_bias': 'qkvo'}}
+    item['transformer'] = {'post_norm': True, 'block': {'attn': {'bias': 'qkvo'}}}
     item.update(TRANS_IMAGE)
     item.update(IMAGE_DEFAULT)
     return item
@@ -47,7 +47,7 @@ def clip_tformers(size: str, patch: int, res: int, keep_head: bool = False):
     pret = hub_pretrained(_hub); pret['source'] = 'transformers'
     item = {'pretrained': pret, 'force_fc_norm': True}
     item['stdt_filter'] = CLIPFilter(keep_head=keep_head)
-    item['transformer'] = {'pre_norm': True, 'post_norm': False, 'block': {'attn_bias': 'qkvo', 'act_name': 'quickgelu'}, 'norm_eps': 1e-5}
+    item['transformer'] = {'pre_norm': True, 'post_norm': False, 'block': {'attn': {'bias': 'qkvo'}, 'act_name': 'quickgelu'}, 'norm_eps': 1e-5}
     item['patch_embed.bias'] = False
     item.update(TRANS_IMAGE)
     item.update(IMAGE_DEFAULT)

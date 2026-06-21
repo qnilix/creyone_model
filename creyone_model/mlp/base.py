@@ -11,6 +11,7 @@ from ..utils.config import BaseCfg
 @dataclass
 class MlpCfg(BaseCfg):
 
+    name: str = 'base'
     mlp_ratio: float = 4.
     
     mlp_act: str = 'gelu'

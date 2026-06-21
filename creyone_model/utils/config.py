@@ -1,3 +1,6 @@
+#Copyright 2026 Rinka Kiriyama。
+#Licensed under the MIT License (MIT). 
+
 import os, json, pathlib
 from dataclasses import asdict, dataclass, fields
 from typing import Any, Optional, Self, Union

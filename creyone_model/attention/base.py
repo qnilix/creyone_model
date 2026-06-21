@@ -1,4 +1,8 @@
-"""Base multi-head attention module for the CreYon model family."""
+"""Base multi-head attention module for the CreYon model family.
+
+Copyright 2026 Rinka Kiriyama。
+Licensed under the MIT License (MIT). 
+"""
 
 from dataclasses import dataclass
 from typing import Iterator

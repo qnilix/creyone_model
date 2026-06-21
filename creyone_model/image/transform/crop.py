@@ -19,12 +19,29 @@ INTERPOLATION = {
 
 
 class CropAndResize:
+    """Crop and resize transform for PIL images and torch tensors.
+
+    Supports multiple crop modes (random, center, squash, ratio, pass) and
+    interpolation methods. Can be used as a callable transform in a pipeline.
+    """
 
     def __init__(self,
                  size: Union[int, list, tuple],
                  crop_pct: Optional[float|tuple] = None,
                  crop_mode: str = 'random',
                  interpolation: Union[str|int] = 'random', **kwargs):
+        """Initialize CropAndResize.
+
+        Args:
+            size: Output (width, height). An int is treated as a square.
+            crop_pct: Fraction of the image to keep before resizing. A float
+                uses a fixed scale; a tuple ``(min, max)`` samples uniformly.
+            crop_mode: One of ``'random'``, ``'center'``, ``'squash'``,
+                ``'ratio'``, or ``'pass'``.
+            interpolation: Interpolation method name (``'bilinear'`` etc.) or
+                index into ``INTERPOLATION``. ``'random'`` picks one each call.
+            **kwargs: Extra options, e.g. ``ratio`` for ``crop_mode='ratio'``.
+        """
         if isinstance(size, int): size = [size, size]
         self.size = np.array(size)
 
@@ -51,6 +68,14 @@ class CropAndResize:
         return f"Crop&Resize: crop={self._crop_mode}({self._crop_pct}) interp={self._interp}"
     
     def __call__(self, image: Union[torch.Tensor, PILImage.Image]):
+        """Apply crop-and-resize to an image.
+
+        Args:
+            image: Input PIL image or torch tensor (C, H, W).
+
+        Returns:
+            Cropped (and optionally resized) image of the configured size.
+        """
         self.check_size(image)
         if self._ratio is not None: return self.ratio_crop(image)
 
@@ -67,6 +92,7 @@ class CropAndResize:
         return F.crop(image, i, j, *self.size)
 
     def to_dict(self):
+        """Return the transform configuration as a serialisable dict."""
         return {
             'size': self.size.tolist(),
             'crop_pct': self._crop_pct,
@@ -74,9 +100,19 @@ class CropAndResize:
             'interpolation': self._interp
         }        
     
-    def relative_call(self, 
+    def relative_call(self,
                       image: Union[torch.Tensor, PILImage.Image],
                       shift: Optional[tuple] = None):
+        """Crop with an optional pixel offset from the computed corner.
+
+        Args:
+            image: Input PIL image or torch tensor.
+            shift: ``(row_offset, col_offset)`` added to the crop corner.
+                An int is broadcast to both axes. ``None`` uses no offset.
+
+        Returns:
+            Cropped image of the configured size.
+        """
         if self._resize:
             image = F.resize(image, 
                              self.new_size(self.keep_pct), self.interpolation)
@@ -90,12 +126,22 @@ class CropAndResize:
             return F.crop(image, i, j, *self.size)
     
     def check_size(self, image: Union[torch.Tensor, PILImage.Image]):
+        """Update ``self.w`` and ``self.h`` from the current image dimensions."""
         self.w, self.h = F.get_image_size(image)
     
     def diff_size(self, target_w: int, target_h: int) -> np.ndarray:
+        """Return ``[w - target_w, h - target_h]`` as the available crop slack."""
         return np.array([self.w - target_w, self.h - target_h])
     
     def new_size(self, pct: Optional[float|tuple] = None):
+        """Compute the resize target before cropping.
+
+        Args:
+            pct: Override for ``crop_pct``. If ``None``, uses the stored value.
+
+        Returns:
+            Integer ``[width, height]`` array for the resize step.
+        """
         size = self.size
         if self._crop_mode == 'center':
             a = max(self.size[0] / self.w, self.size[1] / self.h)
@@ -108,6 +154,10 @@ class CropAndResize:
         return np.floor(size / self.keep_pct).astype(int)
     
     def corner_random(self, tw, th) -> tuple[int, int]:
+        """Return a random (x, y) crop corner within the available slack.
+
+        Returns ``(-1, -1)`` if the image is smaller than the target size.
+        """
         dw, dh = self.diff_size(tw, th)
         if min(dw, dh) < 0: return -1, -1
         if dw > 0: dw = random.randint(0, dw)

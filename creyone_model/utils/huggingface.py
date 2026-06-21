@@ -1,3 +1,6 @@
+#Copyright 2026 Rinka Kiriyama。
+#Licensed under the MIT License (MIT). 
+
 import os, hashlib, json
 from typing import Optional, Union
 from pathlib import Path
