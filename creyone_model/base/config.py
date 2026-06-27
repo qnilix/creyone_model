@@ -73,13 +73,14 @@ class ModelCfg(DataClassConfig):
         """Instantiate the model described by this config.
 
         Args:
-            **kwargs: Extra keyword arguments merged into the model factory call,
-                      taking precedence over ``model_kwargs``.
+            **kwargs: Extra keyword arguments merged into the model factory call.
+                      ``model_kwargs`` takes precedence over these when keys conflict.
 
         Returns:
             The constructed ``nn.Module``.
         """
         create_fn, model_args, pret_cfg = get_model_for_task(self.model, self.task_name)
+        merged = {**kwargs, **self.model_kwargs}
         with self.set_layer_config():
-            model = create_fn(*model_args, pretrained=self.pretrained, pretrained_cfg=pret_cfg, **kwargs)
+            model = create_fn(*model_args, pretrained=self.pretrained, pretrained_cfg=pret_cfg, **merged)
         return model

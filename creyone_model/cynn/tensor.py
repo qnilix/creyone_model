@@ -66,8 +66,7 @@ class CreYonT:
     def __radd__(self, other) -> Self: return self.__add__(other)
     def __sub__(self, other) -> Self: return self.calc(other, lambda a, b: a - b)
     def __rsub__(self, other) -> Self:
-        if isinstance(other, CreYonT): other = other.tensor()
-        return self.plug(other - self._t)
+        return self.calc(other, lambda a, b: b - a)
     def __mul__(self, other) -> Self: return self.calc(other, lambda a, b: a * b)
     def __rmul__(self, other) -> Self: return self.__mul__(other)
     def __truediv__(self, other) -> Self: return self.calc(other, lambda a, b: a / b)
@@ -127,9 +126,16 @@ class CreYonT:
     # --- core ---
     def tensor(self) -> torch.Tensor: return self._t
 
-    def calc(self, other, func, **kwargs):
+    def calc(self, other: Self | torch.Tensor, func, **kwargs):
         if isinstance(other, CreYonT): other = other.tensor()
-        return self.plug(func(self._t, other, **kwargs))
+        try:
+            t = func(self._t, other, **kwargs)
+        except RuntimeError:
+            if isinstance(other, torch.Tensor) and self._t.device != other.device:
+                t = func(self._t, other.to(device=self._t.device), **kwargs)
+            else:
+                raise
+        return self.plug(t)
 
     def plug(self, x: torch.Tensor) -> Self:
         # shallow copy carries subclass attributes (mask, etc.) into the new instance
@@ -187,8 +193,13 @@ class CreYonT:
     def bmm(self, other) -> Self: return self.calc(other, torch.bmm)
 
     def cat(self, other, dim: int = 0) -> Self:
-        if isinstance(other, CreYonT): other = other.tensor()
-        return self.plug(torch.cat((self._t, other), dim=dim))
+        if isinstance(other, (list, tuple)):
+            others = [t.tensor() if isinstance(t, CreYonT) else t for t in other]
+        elif isinstance(other, CreYonT):
+            others = [other.tensor()]
+        else:
+            others = [other]
+        return self.plug(torch.cat([self._t] + others, dim=dim))
 
     def linear(self, other, bias: torch.Tensor = None) -> Self:
         return self.calc(other, F.linear, bias=bias)

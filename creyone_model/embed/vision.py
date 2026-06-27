@@ -13,7 +13,6 @@ from creyone_layer.utils import ntuple
 from ..utils import BaseCfg
 from ..cynn import CreYonT
 
-
 @dataclass
 class PatchEmbedCfg(BaseCfg):
     """Configuration for PatchEmbed.
@@ -31,6 +30,7 @@ class PatchEmbedCfg(BaseCfg):
     image_size: Optional[tuple[int, int]] = (224, 224)
     image_chan: int = 3
     patch_size: int = 16
+    patch_norm: bool = False
 
     # for video
     num_frames: int = 0
@@ -44,6 +44,7 @@ class PatchEmbed(nn.Module):
     """2D image (or 3D video) to patch embedding via a strided convolution projection."""
 
     dynamic_img_pad: torch.jit.Final[bool]
+    stride_div: int = 1
 
     def __init__(
             self,
@@ -64,19 +65,23 @@ class PatchEmbed(nn.Module):
         self.cfg = cfg
         self.patch_size = ntuple(2)(cfg.patch_size)
 
-        s = self.patch_size; g = [s // p for s, p in zip(cfg.image_size, s)]
+        s = self.patch_size // self.grid_div
+        g = [s // p for s, p in zip(cfg.image_size, s)]
         if cfg.num_frames > 0:
             s = [cfg.tubelet_size] + list(s)
             g = [cfg.num_frames // cfg.tubelet_size] + g
         self.grid_size = tuple(g)
 
-        conv_cls = create_layer(cfg.conv_cls, 'conv', nn.Conv2d)
-        conv = conv_cls(len(s), optional='grid')
-        self.proj = conv(cfg.image_chan, embed_dim,
-                         kernel_size = s, bias = cfg.bias)
+        self.apply_norm = cfg.patch_norm and (norm_layer is not None)
+        self._make_proj(cfg, dim=embed_dim, ks=s, norm_layer=norm_layer)
 
         self.flatten = flatten
-        self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
+        self.norm = norm_layer(embed_dim) if self.apply_norm else nn.Identity()
+    
+    def _make_proj(self, cfg: PatchEmbedCfg, dim: int, ks: tuple[int], norm_layer = None):
+        conv_cls = create_layer(cfg.conv_cls, 'conv', getattr(nn, f"Conv{len(ks)}d"))
+        conv = conv_cls(len(ks), optional='grid')
+        self.proj = conv(cfg.image_chan, dim, kernel_size = ks, bias = cfg.bias)
 
     def cyns_config(self) -> dict:
         """Return serializable config fields consumed by CreYon serialization."""
@@ -102,8 +107,5 @@ class PatchEmbed(nn.Module):
             Patch token sequence of shape (B, N, embed_dim) when flatten=True.
         """
         x = x(self.proj)
-        if self.flatten:
-            x = x.flatten(2).transpose(1, 2)  # NC... -> NLC
-        else:
-            x = x.permute(0, *(i for i in range(2, len(x.shape))), 1)
+        if self.flatten: x = x.flatten(2).transpose(1, 2)
         return x(self.norm)
