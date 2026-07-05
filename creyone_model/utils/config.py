@@ -8,7 +8,7 @@ from typing import Any, Optional, Self, Union
 import torch
 from torch.hub import load_state_dict_from_url
 
-from .dictils import pop_keys
+from .dictils import pop_keys, deep_merge
 from .helper import load_state_dict, load_weights_only_compat
 from .huggingface import has_hf_hub, check_cached_file, load_state_dict_from_hf, download_from_hf, parse_imgconf
 
@@ -193,7 +193,7 @@ class BaseCfg:
             if not type_subclass(f.default_factory, BaseCfg): continue
             # Field-specific kwargs take priority over shared remaining kwargs.
             # Build a new dict so the caller's original dict is never mutated.
-            temp = {**kwargs, **kw.get(f.name, {})}
+            temp = deep_merge(kwargs, kw.get(f.name, {}))
             kw[f.name], kwargs = f.default_factory.instance(**temp)
         return cls(**kw), kwargs
 

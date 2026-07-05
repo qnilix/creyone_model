@@ -18,6 +18,22 @@ def set_nested(items: dict, key: str, val: Any) -> None:
     set_nested(items[head], tail, val)
 
 
+def deep_merge(base: dict, override: dict) -> dict:
+    """Recursively merge ``override`` on top of ``base``.
+
+    Unlike ``dict.update``/``{**base, **override}``, a key present as a dict
+    on both sides is merged field-by-field instead of one side wholesale
+    replacing the other. ``override`` wins on any non-dict conflict.
+    """
+    merged = dict(base)
+    for k, v in override.items():
+        if isinstance(v, dict) and isinstance(merged.get(k), dict):
+            merged[k] = deep_merge(merged[k], v)
+        else:
+            merged[k] = v
+    return merged
+
+
 def unflatten(items: dict) -> dict:
     kw = {}
     for k, v in items.items():
@@ -26,6 +42,6 @@ def unflatten(items: dict) -> dict:
             continue
         v = unflatten(v)
         if k in kw:
-            v.update(kw[k])
+            v = deep_merge(v, kw[k])
         kw[k] = v
     return kw
