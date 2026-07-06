@@ -171,9 +171,7 @@ class ImageProcessor(ModuleBase):
 
     def image_init(self, cfg: ImageProcessorCfg, image_norm: str = None) -> RawImage:
         """Instantiate the :class:`RawImage` preprocessing front-end."""
-        img = RawImage(cfg, image_norm)
-        img.H, img.W = self.image_size
-        return img
+        return RawImage(cfg, image_norm)
 
     def model_summary(self):
         """Return a human-readable model summary (not yet implemented)."""

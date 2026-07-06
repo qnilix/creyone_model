@@ -32,7 +32,9 @@ class ImageClassification(ImageProcessor):
     
     def forward(self, inputs: dict) -> dict:
         self._cont = inputs
-        out = self.body(self.image_first(inputs['images']))
+        img = self.image_first(inputs['images'])
+        img.H, img.W = self.image_size
+        out = self.body(img)
         self._cont.update({'output': out, 'size': out.B})
         return self._cont
     
