@@ -145,6 +145,7 @@ class ViT(Transformer):
     def forward(self, x: CreYonT) -> CreYonT:
         """Full ViT forward pass: patch embed -> positional embed -> transformer -> head."""
         x = self.patch_embed(x) # .mask()
+        x.gH, x.gW = self.patch_embed.grid_size
         x = self.transformer_forward(self.embed(x, self.prompts))
         return self.head(x)
     
