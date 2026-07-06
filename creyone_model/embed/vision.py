@@ -65,8 +65,8 @@ class PatchEmbed(nn.Module):
         self.cfg = cfg
         self.patch_size = ntuple(2)(cfg.patch_size)
 
-        s = self.patch_size // self.grid_div
-        g = [s // p for s, p in zip(cfg.image_size, s)]
+        s = [p // self.stride_div for p in self.patch_size]
+        g = [r // p for r, p in zip(cfg.image_size, s)]
         if cfg.num_frames > 0:
             s = [cfg.tubelet_size] + list(s)
             g = [cfg.num_frames // cfg.tubelet_size] + g
