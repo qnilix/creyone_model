@@ -3,6 +3,7 @@ from functools import partial
 from ..utils.registry import register_model
 from ..utils.book import BuildFlyer
 from .base import Attention, AttnCfg
+from .lora import AttentionLoRA, AttnLoRACfg
 
 
 __all__ = ['base']
@@ -17,5 +18,9 @@ def get_attention(module: Attention,
 
 
 @register_model('attn')
-def base(*args, cfg_cls: AttnCfg = None, **kwargs) -> Attention:
+def base(*args, cfg_cls: type[AttnCfg] = None, **kwargs) -> Attention:
     return get_attention(Attention, cfg_cls=cfg_cls, **kwargs)
+
+@register_model('attn')
+def lora(*args, cfg_cls: type[AttnLoRACfg] = None, **kwargs) -> AttentionLoRA:
+    return get_attention(AttentionLoRA, cfg_cls=cfg_cls or AttnLoRACfg, **kwargs)

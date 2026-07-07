@@ -2,7 +2,7 @@
 #Licensed under the MIT License (MIT). 
 
 import os, json, pathlib
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields, make_dataclass
 from typing import Any, Optional, Self, Union
 
 import torch
@@ -196,6 +196,36 @@ class BaseCfg:
             temp = deep_merge(kwargs, kw.get(f.name, {}))
             kw[f.name], kwargs = f.default_factory.instance(**temp)
         return cls(**kw), kwargs
+
+    @classmethod
+    def derive(cls, path: str, field_cls: type['BaseCfg'], name: str = None) -> type['BaseCfg']:
+        """Return a subclass of ``cls`` with the sub-config field at ``path`` replaced.
+
+        Swapping a nested config for a variant subclass (e.g. giving a block's
+        ``attn`` field an ``AttnLoRACfg`` instead of the plain ``AttnCfg``) is a
+        recurring need, since attention/mlp/etc. variants are added over time.
+        Rather than hand-writing a parallel subclass at every level of the
+        hierarchy, ``derive`` rebuilds just the chain of levels named in
+        ``path`` (dot-separated, e.g. ``'transformer.block.attn'``); every
+        other field is inherited unchanged from ``cls``.
+
+        Args:
+            path: Dot-separated field path locating the sub-config to replace,
+                e.g. ``'transformer.block.attn'``.
+            field_cls: The ``BaseCfg`` subclass to install at that path.
+            name: Optional name for the generated class; defaults to
+                ``f'{cls.__name__}_{field_cls.__name__}'``.
+
+        Returns:
+            A new ``BaseCfg`` subclass of ``cls`` with the field replaced.
+        """
+        head, _, tail = path.partition('.')
+        target = next(f for f in fields(cls) if f.name == head)
+        new_field_cls = target.default_factory.derive(tail, field_cls) if tail else field_cls
+        cls_name = name or f'{cls.__name__}_{field_cls.__name__}'
+        return make_dataclass(cls_name,
+                              [(head, new_field_cls, field(default_factory=new_field_cls))],
+                              bases=(cls,))
 
 
 

@@ -15,6 +15,8 @@ from creyone_layer.init import init_linear
 @dataclass
 class AttnLoRACfg(AttnCfg):
 
+    name: str = 'lora'
+
     lora_w: str = ''
     lora_r: int = 0
 
