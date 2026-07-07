@@ -108,4 +108,5 @@ class PatchEmbed(nn.Module):
         """
         x = x(self.proj)
         if self.flatten: x = x.flatten(2).transpose(1, 2)
+        x.H, x.W = self.grid_size
         return x(self.norm)
