@@ -38,7 +38,7 @@ class ImageClassification(ImageProcessor):
         self._cont.update({'output': out, 'size': out.B})
         return self._cont
     
-    def loss_func(self, o, t):
+    def loss_score(self, o, t):
         p = self.container('lam')
         if p is None: return self._loss_fn(o, t)
         if len(t.shape) == 1: t = F.one_hot(t, o.shape[-1])

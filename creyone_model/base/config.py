@@ -81,6 +81,8 @@ class ModelCfg(DataClassConfig):
         """
         create_fn, model_args, pret_cfg = get_model_for_task(self.model, self.task_name)
         merged = {**kwargs, **self.model_kwargs}
+        pret = merged.pop('pretrained', self.pretrained)
+        pret_cfg = merged.pop('pretrained_cfg', None) or pret_cfg
         with self.set_layer_config():
-            model = create_fn(*model_args, pretrained=self.pretrained, pretrained_cfg=pret_cfg, **merged)
+            model = create_fn(*model_args, pretrained=pret, pretrained_cfg=pret_cfg, **merged)
         return model

@@ -17,8 +17,8 @@ class AttnLoRACfg(AttnCfg):
 
     name: str = 'lora'
 
-    lora_w: str = ''
-    lora_r: int = 0
+    lora_w: str = 'qv'
+    lora_r: int = 8
 
 
 class AttentionLoRA(Attention):
