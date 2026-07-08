@@ -80,8 +80,7 @@ class ModuleBase(nn.Module):
         """
         raise AttributeError('loss_func is needed but it is not defined.')
 
-    @property
-    def cyng_loss(self):
+    def loss(self):
         """Compute and cache the loss using ``_cont["output"]`` and ``_cont["target"]``.
 
         Returns:
@@ -90,9 +89,10 @@ class ModuleBase(nn.Module):
         Raises:
             ValueError: If ``"output"`` or ``"target"`` are absent from ``_cont``.
         """
-        o = self.container('output', error=True)
-        t = self.container('target', error=True)
-        self._cont['loss'] = self.loss_func(o, t)
+        if 'loss' not in self._cont:
+            o = self.container('output', error=True)
+            t = self.container('target', error=True)
+            self._cont['loss'] = self.loss_func(o, t)
         return self._cont['loss']
 
     def midstate_init(self):

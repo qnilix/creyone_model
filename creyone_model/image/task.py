@@ -37,8 +37,8 @@ class ImageClassification(ImageProcessor):
         out = self.body(img)
         self._cont.update({'output': out, 'size': out.B})
         return self._cont
-    
-    def loss_score(self, o, t):
+
+    def loss_func(self, o, t):
         p = self.container('lam')
         if p is None: return self._loss_fn(o, t)
         if len(t.shape) == 1: t = F.one_hot(t, o.shape[-1])
@@ -63,8 +63,8 @@ class ImageClassification(ImageProcessor):
         if len(self.target_layers) != 0: item.append('targetLayers')
         return item
 
-    def metric_list(self) -> list: 
-        return [('acc', 'acc5'), ('acc', 'acc1'), 'loss']
+    def metrics(self) -> list: 
+        return {'train': ['loss'], 'test': [('acc', 'acc5'), ('acc', 'acc1'), 'loss']}
 
 
 def from_encoder(variant: str, cynn_i: type[ImageClassification] = ImageClassification,
