@@ -1,10 +1,11 @@
-import pathlib
 from typing import Optional
 from functools import partial
 
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data._utils.collate import default_collate
+
+from timm.utils import accuracy
 
 from .base import ImageProcessor
 
@@ -35,7 +36,7 @@ class ImageClassification(ImageProcessor):
         img = self.image_first(inputs['images'])
         img.H, img.W = self.image_size
         out = self.body(img)
-        self._cont.update({'output': out, 'size': out.B})
+        self._cont.update({'output': out.tensor(), 'size': out.B})
         return self._cont
 
     def loss_func(self, o, t):
@@ -44,6 +45,11 @@ class ImageClassification(ImageProcessor):
         if len(t.shape) == 1: t = F.one_hot(t, o.shape[-1])
         t = t * p + t.flip(dims=[0]) * (1 - p)
         return self._loss_fn(o, t)
+    
+    def loss_score(self): return self.loss()
+
+    def accuracy(self):
+        return accuracy(self.container('output'), self.container('target'), topk=(1, 5))
 
     @property
     def collate_fn(self) -> dict:
@@ -67,7 +73,13 @@ class ImageClassification(ImageProcessor):
         return {'train': ['loss'], 'test': [('acc', 'acc5'), ('acc', 'acc1'), 'loss']}
 
 
+_TASK_KWARGS = ('head', 'cfg', 'loss_bce', 'trainable', 'model_meta',
+                'target_layers', 'image_norm', 'crop_pct', 'crop_mode', 'interpolation')
+
+
 def from_encoder(variant: str, cynn_i: type[ImageClassification] = ImageClassification,
                  **kwargs) -> ImageClassification:
-    create_fn, args, _ = get_model_for_task(variant, 'image_encoder')
-    return cynn_i(create_fn(*args, **kwargs))
+    task_kwargs = {k: kwargs.pop(k) for k in _TASK_KWARGS if k in kwargs}
+    create_fn, args, pret_cfg = get_model_for_task(variant, 'image_encoder')
+    if pret_cfg: kwargs.setdefault('pretrained_cfg', pret_cfg)
+    return cynn_i(create_fn(*args, **kwargs), **task_kwargs)

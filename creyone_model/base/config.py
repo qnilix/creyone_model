@@ -9,7 +9,7 @@ from torch import nn
 from timm.layers import set_layer_config
 
 from con24ma import DataClassConfig, ArgField, DictField
-from .name import parse_model_name, parse_pretrained_cfg
+from .name import parse_model_name, parse_pretrained_cfg, split_model_name_tag
 
 def get_model_for_task(name: str, task: str) -> tuple[Callable, list[str], str]:
     """Look up the model factory function and associated metadata for *name*.
@@ -32,6 +32,8 @@ def get_model_for_task(name: str, task: str) -> tuple[Callable, list[str], str]:
     """
     model_source, model_name = parse_model_name(name)
     pret_cfg = parse_pretrained_cfg(model_name, model_source=model_source)
+    if model_source == 'creyone':
+        model_name, _ = split_model_name_tag(model_name)
 
     model_name, *model_args = model_name.split('-')
     from ..utils.registry import model_entrypoint
@@ -56,7 +58,7 @@ class ModelCfg(DataClassConfig):
     model: str = ArgField('resnet50', ['-m'])
     model_kwargs: dict = DictField()
 
-    pretrained: bool = False
+    pretrained: bool = ArgField(False, action='store_true')
     trained_file: str = ArgField('')
 
     task_name: str = 'any'

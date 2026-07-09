@@ -74,17 +74,20 @@ x = CreYonT(torchT=torch.randn(1, 3, 224, 224))
 out = model(x)   # CreYonT (1, 512)
 ```
 
-### Image classification via `create_model`
+### Image classification via config `create_model`
+
+> **Deprecated:** `creyone_model.factory.create_model` is deprecated and will be
+> removed in **v1.1.0**. Use the config's `create_model` method instead, as shown
+> below.
 
 ```python
-from creyone_model.factory import create_model
+from creyone_model.factory import get_config
 
-model = create_model(
-    'vit_base_16_224',
-    task_name='image_classification',
+cfg = get_config('image_classification')(
+    model='vit_base_16_224',
     pretrained=True,
-    num_classes=1000,
 )
+model = cfg.create_model(num_classes=1000)
 ```
 
 Model name format: `vit_<size>_<patch>_<imgsize>` (e.g. `vit_base_16_224`,
