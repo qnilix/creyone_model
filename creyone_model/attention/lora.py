@@ -17,7 +17,7 @@ class AttnLoRACfg(AttnCfg):
 
     name: str = 'lora'
 
-    lora_w: str = 'qv'
+    lora_w: str = 'qk'
     lora_r: int = 8
 
 
