@@ -20,18 +20,25 @@ class AttnLoRACfg(AttnCfg):
     lora_w: str = 'qk'
     lora_r: int = 8
 
+    general_init: bool = True
+    zeroB: bool = True
+
 
 class AttentionLoRA(Attention):
 
-    def _init_proj(self, dim: int, cfg: AttnCfg):
+    def _init_proj(self, dim: int, cfg: AttnLoRACfg):
         def fn(s):
             if s in cfg.lora_w:
                 return LoRALinear(dim, dim, lora_r = cfg.lora_r, bias = s in cfg.bias)
             return nn.Linear(dim, dim, bias = s in cfg.bias)
+        self.general_init = cfg.general_init
+        self.zeroB = cfg.zeroB
         for s in 'qkvo': self.add_module(f'{s}_proj', fn(s))
 
     def reset_parameters(self, mode: str = 'trunc_', std: float = .02):
-        self.apply(init_linear(mode=mode, std=std))
+        i = getattr(self, 'general_init', True)
+        z = getattr(self, 'zeroB', True)
+        self.apply(init_linear(mode=mode, std=std, general_init=i, zeroB=z))
 
     def trainable_parameters(self, mode='none'):
         if mode == 'all': self.requires_grad_(True); return []

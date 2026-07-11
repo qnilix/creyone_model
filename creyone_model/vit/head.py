@@ -2,7 +2,7 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-from torch.nn import init as w_init
+from creyone_layer.init import init_linear
 
 from ..cynn import CreYonT
 
@@ -37,12 +37,8 @@ class ViTHead(nn.Module):
         x = x(self.pool)(self.fc_norm)(self.head_drop)
         return x if pre_logits else x(self.linear)
     
-    def reset_parameters(self, mode: str = 'trunc_'):
-        def _init_weight(m):
-            if isinstance(m, nn.Linear):
-                getattr(w_init, f"{mode}normal_")(m.weight, std=.02)
-                if m.bias is not None: nn.init.zeros_(m.bias)
-        self.apply(_init_weight)
+    def reset_parameters(self, mode: str = 'trunc_', std: float = .02):
+        self.apply(init_linear(mode=mode, std=std))
     
     def trainable_parameters(self, mode: str = 'all'):
         if mode == 'all': return self.requires_grad_(True)
