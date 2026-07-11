@@ -38,7 +38,7 @@ class AttentionLoRA(Attention):
     def reset_parameters(self, mode: str = 'trunc_', std: float = .02):
         i = getattr(self, 'general_init', True)
         z = getattr(self, 'zeroB', True)
-        self.apply(init_linear(mode=mode, std=std, general_init=i, linear_init=True, zeroB=z))
+        self.apply(init_linear(mode=mode, std=std, general_init=i, zeroB=z))
 
     def trainable_parameters(self, mode='none'):
         if mode == 'all': self.requires_grad_(True); return []
